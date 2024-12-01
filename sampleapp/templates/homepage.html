@@ -59,38 +59,16 @@
             width: 80px;
             text-align: center;
         }
-        .notification {
+        .bell-icon {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
             cursor: pointer;
+            transition: color 0.3s ease-in-out;
         }
-        .notification .bell {
-            font-size: 1.5rem;
-            position: relative;
-        }
-        .notification .bell::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: {% if low_stock_items %}block{% else %}none{% endif %};
-        }
-        .notification .dropdown {
-            display: none;
-            position: absolute;
-            top: 2.5rem;
-            right: 0;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            padding: 1rem;
-            border-radius: 5px;
-            width: 300px;
+        .bell-icon.highlighted {
+            color: red;
         }
         .top-bar {
             display: flex;
@@ -123,20 +101,12 @@
 <body>
     <header>
         <h1>Inventory Management System</h1>
-        <div class="notification" onclick="toggleDropdown()">
-            <span class="bell">&#128276;</span>
-            <div class="dropdown" id="notificationDropdown">
-                <strong>Low Stock Notifications</strong>
-                <ul id="notificationList">
-                    <!-- Notifications will dynamically populate -->
-                </ul>
-            </div>
-        </div>
-    </header>
+        <a href="{% url 'notifications' %}" class="bell-icon {% if notifications %}highlighted{% endif %}">&#128276;</a>    </header>
     <div class="container">
         <div class="top-bar">
             <a href="{% url 'add_item' %}" class="button">Add Item</a>
             <a href="{% url 'backup_items' %}" class="button">Backup</a>
+            <a href="{% url 'generate_report' %}" class="button">Generate Report</a>
             <form method="get" action="">
                 <input type="text" name="search" placeholder="Search items..." value="{{ request.GET.search|default:'' }}" />
                 <button type="submit" class="button">Search</button>

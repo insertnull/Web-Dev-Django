@@ -3,6 +3,49 @@ from sampleapp.models import Item
 from django.http import HttpResponse
 import json
 import csv
+import sys
+sys.path.append('c:\inv\myenv\lib\site-packages')
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+def generate_report(request):
+    # Create the HTTP response object with PDF headers
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="inventory_report.pdf"'
+
+    # Create a PDF canvas
+    pdf = canvas.Canvas(response, pagesize=letter)
+    pdf.setTitle("Inventory Report")
+
+    # Add title
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(100, 750, "Inventory Report")
+
+    # Compute metrics
+    least_stocked_item = Item.objects.order_by('quantity').first()
+    total_unique_items = Item.objects.count()
+    total_items = sum(item.quantity for item in Item.objects.all())
+
+    # Add summary metrics
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(100, 720, f"Total unique items: {total_unique_items}")
+    pdf.drawString(100, 700, f"Total items in inventory: {total_items}")
+    pdf.drawString(100, 680, f"Least stocked item: {least_stocked_item.name if least_stocked_item else 'N/A'}")
+
+    # Add inventory details
+    pdf.drawString(100, 630, "Items in Inventory:")
+    y_position = 610
+    for item in Item.objects.all():
+        pdf.drawString(120, y_position, f"- {item.name} (Quantity: {item.quantity})")
+        y_position -= 20
+        if y_position < 50:  # Create a new page if content overflows
+            pdf.showPage()
+            pdf.setFont("Helvetica", 12)
+            y_position = 750
+
+    # Finalize the PDF
+    pdf.save()
+    return response
 
 def backup_items(request):
     # Create the HTTP response object with CSV headers
@@ -30,10 +73,12 @@ def item_list(request):
         {"name": item.name, "quantity": item.quantity} for item in low_stock_items
     ])
 
+    # Pass flag to highlight bell icon if there are low stock items
     return render(request, 'homepage.html', {
         'items': items,
         'low_stock_items': low_stock_items,  # For template rendering
         'low_stock_items_json': low_stock_items_json,  # For dynamic rendering
+        'notifications': low_stock_items,  # For bell icon highlighting
     })
 
 def add_item(request):
@@ -71,3 +116,7 @@ def edit_item(request, item_id):
         return redirect('item_list')
     return render(request, 'edit_item.html', {'item': item})
 
+def notifications(request):
+    # For this example, we'll consider notifications as items with stock < 5
+    notifications = Item.objects.filter(quantity__lte=10)
+    return render(request, 'notifications.html', {'notifications': notifications})

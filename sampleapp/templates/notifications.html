@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .container {
+            padding: 2rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .notification {
+            background-color: #fff3cd; /* Light yellow */
+            color: #856404; /* Dark yellow text */
+            padding: 0.8rem 1rem; /* Adjust padding */
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid #ffeeba; /* Soft yellow border */
+        }
+        .notification.low-stock {
+            background-color: #d4edda; /* Light green */
+            color: #155724; /* Dark green text */
+            border: 1px solid #c3e6cb; /* Soft green border */
+        }
+        .notification.out-of-stock {
+            background-color: #f8d7da; /* Light red */
+            color: #721c24; /* Dark red text */
+            border: 1px solid #f5c6cb; /* Soft red border */
+        }
+        .notification:hover {
+            background-color: #e2e3e5; /* Soft gray hover for all types */
+        }
+        .button {
+            display: block; /* Ensure block alignment like notification */
+            padding: 0.8rem 1rem; /* Match notification padding */
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            margin: 15px auto 0 auto; /* Margin for positioning */
+            font-weight: bold;
+            width: 90%; /* Slightly smaller width than notifications */
+            max-width: 500px; /* Ensure it doesn't exceed container */
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Notifications</h1>
+    </header>
+    <div class="container">
+        <h2>Items Needing Restocking</h2>
+        {% if notifications %}
+            {% for item in notifications %}
+                <a href="{% url 'edit_item' item.id %}" 
+                   class="notification {% if item.quantity <= 0 %}out-of-stock{% else %}low-stock{% endif %}">
+                    <span class="icon">&#9888;</span> <!-- Warning icon -->
+                    <span>{{ item.name }} (Quantity: {{ item.quantity }})</span>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>No items need restocking at the moment.</p>
+        {% endif %}
+        <a href="{% url 'item_list' %}" class="button">Back to Home</a>
+    </div>
+</body>
+</html>
