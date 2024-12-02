@@ -1,169 +1,133 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Inventory Management</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            position: relative;
-        }
-        .container {
-            padding: 2rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        th, td {
-            text-align: left;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .button {
-            padding: 0.6rem 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .button:hover {
-            background-color: #45a049;
-        }
-        .delete-button {
-            background-color: #f44336;
-        }
-        .delete-button:hover {
-            background-color: #e41e20;
-        }
-        .actions .button {
-            width: 80px;
-            text-align: center;
-        }
-        .bell-icon {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            transition: color 0.3s ease-in-out;
-        }
-        .bell-icon.highlighted {
-            color: red;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .top-bar form {
-            display: flex;
-        }
-        .top-bar input[type="text"] {
-            padding: 0.6rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .top-bar button {
-            margin-left: 0.5rem;
-            padding: 0.6rem 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .top-bar button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Inventory Management System</h1>
-        <a href="{% url 'notifications' %}" class="bell-icon {% if notifications %}highlighted{% endif %}">&#128276;</a>    </header>
-    <div class="container">
-        <div class="top-bar">
-            <a href="{% url 'add_item' %}" class="button">Add Item</a>
-            <a href="{% url 'backup_items' %}" class="button">Backup</a>
-            <a href="{% url 'generate_report' %}" class="button">Generate Report</a>
-            <form method="get" action="">
-                <input type="text" name="search" placeholder="Search items..." value="{{ request.GET.search|default:'' }}" />
-                <button type="submit" class="button">Search</button>
-            </form>
-        </div>
-        
-        <h2>Inventory List</h2>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Added On</th>
-                <th>Actions</th>
-            </tr>
-            {% for item in items %}
-            <tr style="{% if item.quantity <= 10 %}background-color: #ffcccc;{% endif %}">
-                <td>{{ item.name }}</td>
-                <td>{{ item.description }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.price }}</td>
-                <td>{{ item.added_on }}</td>
-                <td class="actions">
-                    <a href="{% url 'edit_item' item.id %}" class="button">Edit</a>
-                    <form method="post" action="{% url 'delete_item' item.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="button delete-button">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+{% extends 'base.html' %}
+
+{% block title %}Inventory List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inventory-header {
+        margin-bottom: 20px;
+    }
+    .inventory-header h1 {
+        margin: 0;
+        font-size: 28px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .inventory-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .inventory-actions button, .inventory-actions a {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        background-color: #4CAF50;
+        color: white;
+        transition: background-color 0.3s;
+    }
+    .inventory-actions button:hover, .inventory-actions a:hover {
+        background-color: #45a049;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 16px;
+    }
+    table th, table td {
+        padding: 18px;
+        text-align: left;
+        border-bottom: 1px solid #f4f4f4;
+    }
+    table th {
+        background-color: #4CAF50;
+        color: white;
+    }
+    table tr:hover {
+        background-color: #f9f9f9;
+    }
+    table tr:last-child td {
+        border-bottom: none;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .action-buttons a {
+        padding: 10px 15px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        background-color: #2196F3;
+        color: white;
+    }
+    .action-buttons a.btn-delete {
+        background-color: #f44336;
+    }
+    .action-buttons a:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inventory-header">
+    <h1 class="page-title">Inventory</h1>
+    <div class="inventory-actions">
+        <form method="GET" action="/search/" style="display: inline-flex; align-items: center;">
+            <input type="text" name="query" placeholder="Search items..." required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px;">
+            <button type="submit">Search</button>
+        </form>
+        <a href="/add/">Add New Item</a>
+        <a href="/backup/">Backup Data</a>
+        <a href="/generate-report/">Generate Report</a>
     </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr class="{% if item.quantity < 10 %}low-stock{% endif %}">
+            <td>{{ item.name }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price|floatformat:2 }}</td>
+            <td>
+                <div class="action-buttons">
+                    <a href="/edit/{{ item.id }}/">Edit</a>
+                    <a href="{% url 'delete_item' item.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<style>
+    /* Add CSS for low stock highlighting */
+    .low-stock {
+        background-color: #ffdddd; /* Slightly red background */
+    }
 
-    <script>
-        function toggleDropdown() {
-            const dropdown = document.getElementById('notificationDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Dynamically inject notifications into the dropdown
-        document.addEventListener("DOMContentLoaded", function () {
-            const notifications = JSON.parse('{{ low_stock_items_json|escapejs }}'); // Safely parse JSON data
-            const notificationList = document.getElementById('notificationList');
-
-            if (notifications.length > 0) {
-                notifications.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = `The ${item.name} has low stock and only ${item.quantity} quantities left!`;
-                    notificationList.appendChild(li);
-                });
-            } else {
-                const li = document.createElement('li');
-                li.textContent = "No low stock items.";
-                notificationList.appendChild(li);
-            }
-        });
-    </script>
-</body>
+    .button {
+        background-color: #ffdddd;
+    }
+{% endblock %}

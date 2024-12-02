@@ -1,12 +1,32 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from sampleapp.models import Item
+from sampleapp.models import Item, RecycleBin, ActionLog
+from django.db.models import Sum
 from django.http import HttpResponse
 import json
 import csv
 import sys
+import datetime
 sys.path.append('c:\inv\myenv\lib\site-packages')
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+
+def dashboard(request):
+    # Data for the pie chart
+    inventory = Item.objects.all()
+    inventory_summary = (
+        inventory.values('name')
+        .annotate(total_quantity=Sum('quantity'))
+        .order_by('-total_quantity')
+    )
+
+    # Recent changes (latest 10 entries)
+    recent_changes = ActionLog.objects.order_by('-action_date')[:10]
+
+    context = {
+        'inventory_summary': inventory_summary,
+        'recent_changes': recent_changes,
+    }
+    return render(request, 'dashboard.html', context)
 
 def generate_report(request):
     # Create the HTTP response object with PDF headers
@@ -61,25 +81,8 @@ def backup_items(request):
     return response
 
 def item_list(request):
-    # Fetch all items or filter based on the search query
-    query = request.GET.get('search', '')
-    items = Item.objects.filter(name__icontains=query) if query else Item.objects.all()
-
-    # Identify low-stock items
-    low_stock_items = items.filter(quantity__lte=10)
-
-    # Serialize low-stock items into JSON
-    low_stock_items_json = json.dumps([
-        {"name": item.name, "quantity": item.quantity} for item in low_stock_items
-    ])
-
-    # Pass flag to highlight bell icon if there are low stock items
-    return render(request, 'homepage.html', {
-        'items': items,
-        'low_stock_items': low_stock_items,  # For template rendering
-        'low_stock_items_json': low_stock_items_json,  # For dynamic rendering
-        'notifications': low_stock_items,  # For bell icon highlighting
-    })
+    items = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
+    return render(request, 'homepage.html', {'items': items})
 
 def add_item(request):
     if request.method == 'POST':
@@ -99,11 +102,6 @@ def add_item(request):
 
     return render(request, 'add_item.html')
 
-def delete_item(request, item_id):
-    item = get_object_or_404(Item, id=item_id)
-    item.delete()
-    return redirect('item_list')
-
 def edit_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)  # Use item_id to fetch the item
     if request.method == 'POST':
@@ -117,6 +115,26 @@ def edit_item(request, item_id):
     return render(request, 'edit_item.html', {'item': item})
 
 def notifications(request):
-    # For this example, we'll consider notifications as items with stock < 5
-    notifications = Item.objects.filter(quantity__lte=10)
+    notifications = Item.objects.filter(is_deleted=False, quantity__lt=10)  # Low stock, not deleted
     return render(request, 'notifications.html', {'notifications': notifications})
+
+def delete_item(request, item_id):
+    item = get_object_or_404(Item, id=item_id)
+    item.is_deleted = True
+    item.save()
+    return redirect('item_list')  # Replace with the name of your homepage URL
+
+def restore_item(request, item_id):
+    item = get_object_or_404(Item, id=item_id, is_deleted=True)
+    item.is_deleted = False
+    item.save()
+    return redirect('recycle_bin')
+
+def permanently_delete_item(request, item_id):
+    item = get_object_or_404(Item, id=item_id, is_deleted=True)
+    item.delete()
+    return redirect('recycle_bin')
+
+def recycle_bin(request):
+    deleted_items = Item.objects.filter(is_deleted=True)
+    return render(request, 'recycle_bin.html', {'deleted_items': deleted_items})
