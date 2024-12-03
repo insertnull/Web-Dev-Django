@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from sampleapp.models import Item, RecycleBin, ActionLog
-from django.db.models import Sum
+from sampleapp.models import Item, ActionLog
+from django.db.models import Sum, F
 from django.http import HttpResponse
 import json
 import csv
@@ -12,19 +12,30 @@ from reportlab.pdfgen import canvas
 
 def dashboard(request):
     # Data for the pie chart
-    inventory = Item.objects.all()
+    inventory = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
     inventory_summary = (
         inventory.values('name')
         .annotate(total_quantity=Sum('quantity'))
         .order_by('-total_quantity')
     )
 
-    # Recent changes (latest 10 entries)
-    recent_changes = ActionLog.objects.order_by('-action_date')[:10]
+    # Get recent changes (Added, Edited, Deleted)
+    recent_added = Item.objects.filter(is_deleted=False, created_at=F('modified_at')).order_by('-created_at')[:5]
+    recent_modified = Item.objects.filter(is_deleted=False).exclude(created_at=F('modified_at')).order_by('-modified_at')[:5]
+    recent_deleted = Item.objects.filter(is_deleted=True).order_by('-modified_at')[:5]
 
+    # Combine and sort by the latest timestamp
+    all_changes = (
+        list(recent_added) +
+        list(recent_modified) +
+        list(recent_deleted)
+    )
+    sorted_changes = sorted(all_changes, key=lambda x: max(x.created_at, x.modified_at), reverse=True)[:5]
+
+    # Prepare the context for the dashboard
     context = {
         'inventory_summary': inventory_summary,
-        'recent_changes': recent_changes,
+        'recent_changes': sorted_changes,  # Top 5 changes
     }
     return render(request, 'dashboard.html', context)
 
@@ -80,6 +91,11 @@ def backup_items(request):
 
     return response
 
+def search_items(request):
+    query = request.GET.get('query', '')
+    items = Item.objects.filter(name__icontains=query)  # Example: search by item name
+    return render(request, 'homepage.html', {'items': items, 'query': query})
+
 def item_list(request):
     items = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
     return render(request, 'homepage.html', {'items': items})
@@ -133,6 +149,14 @@ def restore_item(request, item_id):
 def permanently_delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id, is_deleted=True)
     item.delete()
+    return redirect('recycle_bin')
+
+def restore_all_items(request):
+    Item.objects.filter(is_deleted=True).update(is_deleted=False)
+    return redirect('recycle_bin')
+
+def delete_all_items(request):
+    Item.objects.filter(is_deleted=True).delete()
     return redirect('recycle_bin')
 
 def recycle_bin(request):

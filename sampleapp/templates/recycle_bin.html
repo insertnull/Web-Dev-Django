@@ -1,75 +1,127 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Recycle Bin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recycle-header {
+        margin-bottom: 20px;
+    }
+    .recycle-header h1 {
+        margin: 0;
+        font-size: 28px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .recycle-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .recycle-actions a {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        background-color: #3D53A9;
+        color: white;
+        transition: background-color 0.3s;
+    }
+    .recycle-actions a:hover {
+        background-color: #45a049;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 16px;
+    }
+    table th, table td {
+        padding: 18px;
+        text-align: left;
+        border-bottom: 1px solid #f4f4f4;
+    }
+    table th {
+        background-color: #283670;
+        color: white;
+    }
+    table tr:hover {
+        background-color: #f9f9f9;
+    }
+    table tr:last-child td {
+        border-bottom: none;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .action-buttons a {
+        padding: 10px 15px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        background-color: #3D53A9;
+        color: white;
+    }
+    .action-buttons a.btn-delete {
+        background-color: #f44336;
+    }
+    .action-buttons a:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="margin: 20px;">
-    <!-- Page Header -->
-    <h1 style="color: #d9534f; font-size: 24px; border-bottom: 2px solid #d9534f; padding-bottom: 10px;">
-        Recycle Bin
-    </h1>
-    <a href="{% url 'item_list' %}" style="
-        display: inline-block; 
-        margin-top: 10px; 
-        padding: 10px 15px; 
-        color: white; 
-        background-color: #5cb85c; 
-        text-decoration: none; 
-        border-radius: 5px;
-        font-size: 14px;">Back to Inventory</a>
-
-    <!-- Recycle Bin Table -->
-    <table style="
-        width: 100%; 
-        margin-top: 20px; 
-        border-collapse: collapse; 
-        font-family: Arial, sans-serif; 
-        font-size: 14px; 
-        border: 1px solid #ddd;">
-        <thead>
-            <tr style="background-color: #f2f2f2; text-align: left;">
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">#</th>
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Name</th>
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Description</th>
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Quantity</th>
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Price</th>
-                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in deleted_items %}
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ forloop.counter }}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ item.name }}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ item.description }}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ item.quantity }}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">${{ item.price }}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #ddd;">
-                    <a href="{% url 'restore_item' item.id %}" style="
-                        color: white; 
-                        background-color: #0275d8; 
-                        text-decoration: none; 
-                        padding: 5px 10px; 
-                        border-radius: 3px;
-                        font-size: 12px;">Restore</a>
-                    <a href="{% url 'permanently_delete_item' item.id %}" style="
-                        color: white; 
-                        background-color: #d9534f; 
-                        text-decoration: none; 
-                        padding: 5px 10px; 
-                        border-radius: 3px;
-                        font-size: 12px; margin-left: 5px;">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" style="
-                    text-align: center; 
-                    padding: 20px; 
-                    color: #888;">
-                    No items in the recycle bin.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<h1 class="page-title">Recycle Bin</h1>
+<div class="recycle-header">
+    <div class="recycle-actions">
+        <a href="{% url 'restore_all_items' %}">Restore All</a>
+        <a href="{% url 'delete_all_items' %}" style="background-color: #f44336;">Delete All</a>
+    </div>
 </div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in deleted_items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₱{{ item.price|floatformat:2 }}</td>
+            <td>
+                <div class="action-buttons">
+                    <a href="{% url 'restore_item' item.id %}">Restore</a>
+                    <a href="{% url 'permanently_delete_item' item.id %}" class="btn-delete">Delete</a>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                No items in the recycle bin.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

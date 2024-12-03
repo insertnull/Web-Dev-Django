@@ -7,6 +7,8 @@ class Item(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     added_on = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)  # Automatically updated on change
+    created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)  # Soft delete flag
 
     def __str__(self):

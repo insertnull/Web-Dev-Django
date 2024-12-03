@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -37,11 +38,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        .buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
         .button {
             padding: 0.8rem;
             color: white;
@@ -54,29 +50,27 @@
             width: auto;  /* Adjust width to fit content */
             min-width: 120px; /* Ensures buttons have a minimum size */
             text-align: center;
+            background-color: #3D53A9;
         }
         .button:hover {
             opacity: 0.9;
         }
-        .button.green {
-            background-color: #4CAF50; /* Green color for "Add Item" */
+        .cancel-button {
+            background-color: #f44336;
         }
-        .button.green:hover {
-            background-color: #45a049; /* Darker green on hover */
+        .cancel-button:hover {
+            background-color: #e41e20;
         }
-        .button.red {
-            background-color: #f44336; /* Red color for "Back to Inventory" */
-        }
-        .button.red:hover {
-            background-color: #e53935; /* Darker red on hover */
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Add a New Item</h1>
-    </header>
+        
     <div class="container">
+        <h1>Add a New Item</h1>
         <form method="post">
             {% csrf_token %}
             <label for="name">Name:</label>
@@ -90,12 +84,13 @@
             
             <label for="price">Price:</label>
             <input type="number" step="0.01" id="price" name="price" required>
-            
-            <button type="submit" class="button green">Add Item</button>
+
+            <div class="form-buttons">
+                <a href="{% url 'item_list' %}" class="button cancel-button">Back to Inventory</a>
+                <button type="submit" class="button">Add Item</button>
+            </div>
         </form>
-        <div class="buttons">
-            <a href="{% url 'item_list' %}" class="button red">Back to Inventory</a>
-        </div>
+        
     </div>
 </body>
 </html>

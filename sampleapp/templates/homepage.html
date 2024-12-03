@@ -15,11 +15,16 @@
     }
     .inventory-actions {
         display: flex;
-        justify-content: center;
-        gap: 15px;
-        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 20px;
     }
+
+    .inventory-actions-left {
+        display: flex;
+        gap: 15px;
+    }
+
     .inventory-actions button, .inventory-actions a {
         padding: 12px 20px;
         font-size: 16px;
@@ -27,13 +32,36 @@
         border-radius: 8px;
         cursor: pointer;
         text-decoration: none;
-        background-color: #4CAF50;
+        background-color: #3D53A9;
         color: white;
         transition: background-color 0.3s;
     }
     .inventory-actions button:hover, .inventory-actions a:hover {
         background-color: #45a049;
     }
+
+    .inventory-actions-right {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    .inventory-actions-right button, .inventory-actions-right a {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        background-color: #3D53A9;
+        color: white;
+        transition: background-color 0.3s;
+    }
+
+    .inventory-actions-right button:hover, .inventory-actions-right a:hover {
+        background-color: #45a049;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
@@ -50,7 +78,7 @@
         border-bottom: 1px solid #f4f4f4;
     }
     table th {
-        background-color: #4CAF50;
+        background-color: #283670;
         color: white;
     }
     table tr:hover {
@@ -69,8 +97,9 @@
         border: none;
         border-radius: 5px;
         text-decoration: none;
-        background-color: #2196F3;
+        background-color: #3D53A9;
         color: white;
+        display: flex;
     }
     .action-buttons a.btn-delete {
         background-color: #f44336;
@@ -78,22 +107,41 @@
     .action-buttons a:hover {
         opacity: 0.9;
     }
+
+    /* Add CSS for low stock highlighting */
+    .low-stock {
+        background-color: #ffdddd; /* Slightly red background */
+    }
+
+    .button {
+        background-color: #283670;
+    }
+    #btn-danger{
+        background-color: #f44336;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<h1 class="page-title">Inventory List</h1>
+
 <div class="inventory-header">
-    <h1 class="page-title">Inventory</h1>
     <div class="inventory-actions">
-        <form method="GET" action="/search/" style="display: inline-flex; align-items: center;">
-            <input type="text" name="query" placeholder="Search items..." required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px;">
-            <button type="submit">Search</button>
-        </form>
-        <a href="/add/">Add New Item</a>
-        <a href="/backup/">Backup Data</a>
-        <a href="/generate-report/">Generate Report</a>
+        <div class="inventory-actions-left">
+            <a href="/add/">Add New Item</a>
+            <a href="/backup/">Backup Data</a>
+            <a href="/generate-report/">Generate Report</a>
+        </div>
+
+        <div class="inventory-actions-right">
+            <form method="GET" action="{% url 'search_items' %}" style="display: inline-flex; align-items: center;">
+                <input type="text" name="query" value="{{ query }}" placeholder="Search items..." required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px;">
+                <button type="submit">Search</button>
+            </form>
+        </div>
     </div>
 </div>
+
 <table>
     <thead>
         <tr>
@@ -110,24 +158,16 @@
             <td>{{ item.name }}</td>
             <td>{{ item.description }}</td>
             <td>{{ item.quantity }}</td>
-            <td>${{ item.price|floatformat:2 }}</td>
+            <td>₱{{ item.price|floatformat:2 }}</td>
             <td>
                 <div class="action-buttons">
                     <a href="/edit/{{ item.id }}/">Edit</a>
-                    <a href="{% url 'delete_item' item.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    <a href="{% url 'delete_item' item.id %}" id="btn-danger">Delete</a>
                 </div>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-<style>
-    /* Add CSS for low stock highlighting */
-    .low-stock {
-        background-color: #ffdddd; /* Slightly red background */
-    }
 
-    .button {
-        background-color: #ffdddd;
-    }
 {% endblock %}
