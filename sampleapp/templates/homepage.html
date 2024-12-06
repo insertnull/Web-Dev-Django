@@ -4,170 +4,129 @@
 
 {% block extra_css %}
 <style>
-    .inventory-header {
-        margin-bottom: 20px;
-    }
-    .inventory-header h1 {
-        margin: 0;
-        font-size: 28px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    .inventory-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
+    /* Highlight rows with low stock */
+    .low-stock {
+        background-color: #ffe6e6; /* Light red for low stock rows */
+        transition: background-color 0.3s ease-in-out; /* Smooth transition for hover effect */
     }
 
-    .inventory-actions-left {
-        display: flex;
-        gap: 15px;
+    .low-stock:hover {
+        background-color: #ffcccc !important; /* Darker red on hover */
     }
 
-    .inventory-actions button, .inventory-actions a {
-        padding: 12px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        background-color: #3D53A9;
-        color: white;
-        transition: background-color 0.3s;
-    }
-    .inventory-actions button:hover, .inventory-actions a:hover {
-        background-color: #45a049;
-    }
-
-    .inventory-actions-right {
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-    }
-
-    .inventory-actions-right button, .inventory-actions-right a {
-        padding: 12px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        background-color: #3D53A9;
-        color: white;
-        transition: background-color 0.3s;
-    }
-
-    .inventory-actions-right button:hover, .inventory-actions-right a:hover {
-        background-color: #45a049;
-    }
-
-    table {
+    /* Table styling */
+    .table-custom {
+        border-collapse: separate;
+        border-spacing: 0;
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
+        border-radius: 10px;
         overflow: hidden;
-        font-size: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    table th, table td {
-        padding: 18px;
+
+    /* Table header styled like navigation bar */
+    .table-custom thead {
+        background-color: var(--navbar-bg-color, #007bff); /* Matches the navbar color */
+        color: var(--navbar-text-color, white); /* Matches navbar text color */
+    }
+
+    .table-custom thead th {
+        padding: 1rem;
         text-align: left;
-        border-bottom: 1px solid #f4f4f4;
     }
-    table th {
-        background-color: #283670;
-        color: white;
+
+    /* Table body styling */
+    .table-custom tbody tr {
+        background-color: #ffffff;
+        transition: background-color 0.3s ease-in-out;
     }
-    table tr:hover {
-        background-color: #f9f9f9;
+
+    .table-custom tbody tr:hover {
+        background-color: #f8f9fa;
     }
-    table tr:last-child td {
+
+    /* Cells */
+    .table-custom td {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-custom tbody tr:last-child td {
         border-bottom: none;
     }
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    .action-buttons a {
-        padding: 10px 15px;
-        font-size: 14px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        background-color: #3D53A9;
-        color: white;
-        display: flex;
-    }
-    .action-buttons a.btn-delete {
-        background-color: #f44336;
-    }
-    .action-buttons a:hover {
-        opacity: 0.9;
+
+    /* Button styles */
+    .btn-primary,
+    .btn-secondary,
+    .btn-report,
+    .btn-outline-primary {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
     }
 
-    /* Add CSS for low stock highlighting */
-    .low-stock {
-        background-color: #ffdddd; /* Slightly red background */
+    .btn-sm {
+        padding: 5px 15px;
+        font-size: 0.8rem;
     }
 
-    .button {
-        background-color: #283670;
-    }
-    #btn-danger{
-        background-color: #f44336;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">Inventory List</h1>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Inventory List</h1>
 
-<div class="inventory-header">
-    <div class="inventory-actions">
-        <div class="inventory-actions-left">
-            <a href="/add/">Add New Item</a>
-            <a href="/backup/">Backup Data</a>
-            <a href="/generate-report/">Generate Report</a>
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Left Actions -->
+        <div>
+            <a href="/add/" class="btn btn-primary me-2">Add New Item</a>
+            <a href="/backup/" class="btn btn-primary me-2">Backup Data</a>
+            <a href="/generate-report/" class="btn btn-primary">Generate Report</a>
         </div>
 
-        <div class="inventory-actions-right">
-            <form method="GET" action="{% url 'search_items' %}" style="display: inline-flex; align-items: center;">
-                <input type="text" name="query" value="{{ query }}" placeholder="Search items..." required style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px;">
-                <button type="submit">Search</button>
-            </form>
-        </div>
+        <!-- Search Form -->
+        <form method="GET" action="{% url 'search_items' %}" class="d-flex">
+            <input 
+                type="text" 
+                name="query" 
+                value="{{ query }}" 
+                class="form-control me-2" 
+                placeholder="Search items..." 
+                required>
+            <button type="submit" class="btn btn-outline-primary">Search</button>
+        </form>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr {% if item.quantity < 10 %}style="background-color: #f8d7da;"{% endif %}>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₱{{ item.price|floatformat:2 }}</td>
+                        <td>
+                            <a href="{% url 'edit_item' item.id %}" class="btn btn-sm btn-primary">Edit</a>
+                            <a href="{% url 'delete_item' item.id %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr class="{% if item.quantity < 10 %}low-stock{% endif %}">
-            <td>{{ item.name }}</td>
-            <td>{{ item.description }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>₱{{ item.price|floatformat:2 }}</td>
-            <td>
-                <div class="action-buttons">
-                    <a href="/edit/{{ item.id }}/">Edit</a>
-                    <a href="{% url 'delete_item' item.id %}" id="btn-danger">Delete</a>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
 {% endblock %}

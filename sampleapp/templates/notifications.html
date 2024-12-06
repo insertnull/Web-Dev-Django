@@ -3,28 +3,30 @@
 {% block title %}Notifications{% endblock %}
 
 {% block content %}
-
-<div class="main-content">
-        <h1 class="page-title">Notifications</h1>
-
-    <!-- Notification container in the center of the white area -->
-    <div class="notification-container" style="margin: 2rem auto; max-width: 600px;">
-        {% if notifications %}
-            {% for item in notifications %}
-                <a href="{% url 'edit_item' item.id %}" 
-                   class="notification {% if item.quantity <= 0 %}out-of-stock{% else %}low-stock{% endif %}"
-                   style="display: flex; align-items: center; margin: 0.5rem 0; padding: 1rem; border-radius: 8px; 
-                          box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-decoration: none; color: inherit;">
-                    <div style="font-size: 1.5rem; margin-right: 1rem;">&#9888;</div>
-                    <div>
-                        <strong>{{ item.name }}</strong>
-                        <p style="margin: 0; color: gray;">Quantity: {{ item.quantity }}</p>
-                    </div>
-                </a>
-            {% endfor %}
-        {% else %}
-            <p style="text-align: center; font-size: 1.1em; color: gray;">No items need restocking at the moment.</p>
-        {% endif %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Low Stock Notifications</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% if notifications %}
+                {% for item in notifications %}
+                    <a href="{% url 'edit_item' item.id %}" class="text-decoration-none">
+                        <div class="card shadow-sm mb-3 border-0">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title mb-1 text-dark">{{ item.name }}</h5>
+                                    <p class="card-text text-muted mb-0">Quantity: {{ item.quantity }}</p>
+                                </div>
+                                <span class="badge bg-warning text-dark">Low Stock</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center">
+                    No items with low stock.
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

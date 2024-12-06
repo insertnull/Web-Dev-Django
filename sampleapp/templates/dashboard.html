@@ -2,81 +2,49 @@
 
 {% block title %}Dashboard{% endblock %}
 
-{% block extra_css %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-    .dashboard-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-    .chart-card, .recent-changes-card {
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        padding: 20px;
-        flex: 1;
-        min-width: 300px;
-    }
-    .chart-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .chart-card canvas {
-        max-width: 100%;
-        height: auto;
-    }
-    .recent-changes-card .change-card {
-        margin-bottom: 1rem;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        background-color: #f9f9f9;
-    }
-    .recent-changes-card .change-card strong {
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    .recent-changes-card .change-card span {
-        font-size: 0.9em;
-        color: #555;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<h1 class="page-title">Dashboard</h1>
-<div class="dashboard-container" style="display: flex; flex-wrap: wrap; justify-content: space-between; max-width: 1200px; margin: 2rem auto; gap: 2rem;">
-    <!-- Pie Chart Section -->
-    <div class="chart-card">
-        <h2>Inventory Overview</h2>
-        <div id="piechart" style="width: 100%; height: 400px;"></div>
-    </div>
-
-    <!-- Recent Changes Section -->
-    <div class="recent-changes-card">
-    <h2>Recent Changes</h2>
-    {% if recent_changes %}
-        {% for change in recent_changes %}
-            <div class="change-card">
-                <strong>{{ change.name }}</strong>
-                <span>
-                    {% if change.is_deleted %}
-                        Deleted on {{ change.modified_at|date:"F j, Y, g:i a" }}
-                    {% elif change.created_at == change.modified_at %}
-                        Added on {{ change.created_at|date:"F j, Y, g:i a" }}
-                    {% else %}
-                        Edited on {{ change.modified_at|date:"F j, Y, g:i a" }}
-                    {% endif %}
-                </span>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Dashboard</h1>
+    <div class="row g-4">
+        <!-- Pie Chart Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h5 class="card-title text-center">Inventory Overview</h5>
+                    <div id="piechart" style="height: 400px;"></div>
+                </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <p>No recent changes available.</p>
-    {% endif %}
-</div>
+        </div>
+
+        <!-- Recent Changes Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Recent Changes</h5>
+                    {% if recent_changes %}
+                        <ul class="list-group list-group-flush">
+                            {% for change in recent_changes %}
+                                <li class="list-group-item">
+                                    <strong>{{ change.name }}</strong><br>
+                                    <small>
+                                        {% if change.is_deleted %}
+                                            Deleted on {{ change.modified_at|date:"F j, Y, g:i a" }}
+                                        {% elif change.created_at == change.modified_at %}
+                                            Added on {{ change.created_at|date:"F j, Y, g:i a" }}
+                                        {% else %}
+                                            Edited on {{ change.modified_at|date:"F j, Y, g:i a" }}
+                                        {% endif %}
+                                    </small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center mt-3">No recent changes available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Google Charts Script -->
@@ -89,35 +57,19 @@
         var data = google.visualization.arrayToDataTable([
             ['Item', 'Quantity'],
             {% for item in inventory_summary %}
-                ['{{ item.name }}', {{ item.total_quantity }}],
+                {% if item.total_quantity > 0 %}
+                    ['{{ item.name|escapejs }}', {{ item.total_quantity }}],
+                {% endif %}
             {% endfor %}
         ]);
 
         var options = {
-            title: 'Inventory Overview',
-            titleTextStyle: {
-                fontSize: 18,
-                bold: true,
-                color: '#4CAF50',
-            },
-            chartArea: {
-                width: '80%',
-                height: '80%',
-            },
-            pieHole: 0.4, // For a modern donut chart style
-            colors: ['#4CAF50', '#FFC107', '#2196F3', '#FF5722', '#9C27B0'], // Modern color palette
-            legend: {
-                position: 'right',
-                textStyle: {
-                    fontSize: 12,
-                    color: '#555',
-                },
-            },
+            pieHole: 0.3,
+            colors: ['#2196F3', '#FFC107', '#4CAF50', '#FF5722', '#9C27B0'],
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('piechart'));
         chart.draw(data, options);
     }
 </script>
-
 {% endblock %}

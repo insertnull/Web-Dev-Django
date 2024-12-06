@@ -4,92 +4,91 @@
 
 {% block extra_css %}
 <style>
-    .recycle-header {
-        margin-bottom: 20px;
+    /* Highlight rows with low stock */
+    .low-stock {
+        background-color: #ffe6e6 !important; /* Light red for low stock rows */
     }
-    .recycle-header h1 {
-        margin: 0;
-        font-size: 28px;
-        text-align: center;
-        margin-bottom: 20px;
+
+    /* Table styling */
+    .table-custom {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table header styled like navigation bar */
+    .table-custom thead {
+        background-color: var(--primary-color);
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .table-custom th, .table-custom td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    /* Alternate row colors for better readability */
+    .table-custom tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* Row hover effect */
+    .table-custom tbody tr:hover {
+        background-color: #f1f1f1;
     }
     .recycle-actions {
         display: flex;
         justify-content: center;
-        gap: 15px;
+        gap: 20px;
         flex-wrap: wrap;
         margin-bottom: 20px;
     }
-    .recycle-actions a {
-        padding: 12px 20px;
-        font-size: 16px;
-        border: none;
+    
+    .recycle-actions .btn {
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: bold;
         border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        background-color: #3D53A9;
-        color: white;
-        transition: background-color 0.3s;
+        text-transform: uppercase;
     }
-    .recycle-actions a:hover {
-        background-color: #45a049;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: hidden;
-        font-size: 16px;
-    }
-    table th, table td {
-        padding: 18px;
-        text-align: left;
-        border-bottom: 1px solid #f4f4f4;
-    }
-    table th {
-        background-color: #283670;
-        color: white;
-    }
-    table tr:hover {
-        background-color: #f9f9f9;
-    }
-    table tr:last-child td {
-        border-bottom: none;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    .action-buttons a {
-        padding: 10px 15px;
-        font-size: 14px;
+    
+    .recycle-actions .btn-primary {
+        background-color: #007bff;
         border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        background-color: #3D53A9;
-        color: white;
     }
-    .action-buttons a.btn-delete {
-        background-color: #f44336;
+    
+    .recycle-actions .btn-danger {
+        background-color: #dc3545;
+        border: none;
     }
-    .action-buttons a:hover {
+    
+    .recycle-actions .btn:hover {
         opacity: 0.9;
     }
+    
 </style>
+
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">Recycle Bin</h1>
-<div class="recycle-header">
+<h1 class="text-center mb-4">Recycle Bin</h1>
+<div class="recycle-header mb-4">
     <div class="recycle-actions">
-        <a href="{% url 'restore_all_items' %}">Restore All</a>
-        <a href="{% url 'delete_all_items' %}" style="background-color: #f44336;">Delete All</a>
+        <a href="{% url 'restore_all_items' %}" class="btn btn-primary btn-lg">
+            Restore All
+        </a>
+        <a href="{% url 'delete_all_items' %}" class="btn btn-danger btn-lg">
+            Delete All
+        </a>
     </div>
+    
 </div>
-<table>
+<table class="table table-custom align-middle">
     <thead>
         <tr>
             <th>#</th>
@@ -97,7 +96,7 @@
             <th>Description</th>
             <th>Quantity</th>
             <th>Price</th>
-            <th>Actions</th>
+            <th class="text-center">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -108,17 +107,14 @@
             <td>{{ item.description }}</td>
             <td>{{ item.quantity }}</td>
             <td>₱{{ item.price|floatformat:2 }}</td>
-            <td>
-                <div class="action-buttons">
-                    <a href="{% url 'restore_item' item.id %}">Restore</a>
-                    <a href="{% url 'permanently_delete_item' item.id %}" class="btn-delete">Delete</a>
-                </div>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
-                No items in the recycle bin.
+            <td class="text-center">
+                <!-- Adjust icons and actions as needed -->
+                <a href="{% url 'restore_item' item.id %}" class="btn btn-success btn-sm">
+                    Restore
+                </a>
+                <a href="{% url 'permanently_delete_item' item.id %}" class="btn btn-danger btn-sm">
+                    Delete
+                </a>
             </td>
         </tr>
         {% endfor %}

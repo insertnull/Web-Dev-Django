@@ -69,7 +69,7 @@ def generate_report(request):
     for item in Item.objects.all():
         pdf.drawString(120, y_position, f"- {item.name} (Quantity: {item.quantity})")
         y_position -= 20
-        if y_position < 50:  # Create a new page if content overflows
+        if y_position < 50:
             pdf.showPage()
             pdf.setFont("Helvetica", 12)
             y_position = 750
@@ -85,19 +85,19 @@ def backup_items(request):
 
     # Write CSV data
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name', 'Quantity', 'Price'])  # Adjust headers as needed
+    writer.writerow(['ID', 'Name', 'Quantity', 'Price'])
     for item in Item.objects.all():
-        writer.writerow([item.id, item.name, item.quantity, item.price])  # Match your model fields
+        writer.writerow([item.id, item.name, item.quantity, item.price])
 
     return response
 
 def search_items(request):
     query = request.GET.get('query', '')
-    items = Item.objects.filter(name__icontains=query)  # Example: search by item name
+    items = Item.objects.filter(name__icontains=query)
     return render(request, 'homepage.html', {'items': items, 'query': query})
 
 def item_list(request):
-    items = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
+    items = Item.objects.filter(is_deleted=False) 
     return render(request, 'homepage.html', {'items': items})
 
 def add_item(request):
