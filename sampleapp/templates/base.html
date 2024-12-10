@@ -148,16 +148,17 @@ footer {
     </style>
 </head>
 <body>
+    {% if user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="/">Inventory System</a>
+            <a class="navbar-brand" href="/dashboard">Inventory System</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/item_list">Inventory</a>
@@ -168,10 +169,16 @@ footer {
                     <li class="nav-item">
                         <a class="nav-link" href="/recycle_bin/">Recycle Bin</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Logout</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+    {% else %}
+        <p>You must <a href="{% url 'login' %}">log in</a>.</p>
+    {% endif %}
     <div class="container mt-5">
         {% block content %}
         {% endblock %}

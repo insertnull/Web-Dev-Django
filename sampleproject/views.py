@@ -9,7 +9,13 @@ import datetime
 sys.path.append('c:\inv\myenv\lib\site-packages')
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def test_protected_view(request):
+    return HttpResponse("You are authenticated!")
+
+@login_required
 def dashboard(request):
     # Data for the pie chart
     inventory = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
@@ -78,6 +84,7 @@ def generate_report(request):
     pdf.save()
     return response
 
+@login_required
 def backup_items(request):
     # Create the HTTP response object with CSV headers
     response = HttpResponse(content_type='text/csv')
@@ -91,15 +98,18 @@ def backup_items(request):
 
     return response
 
+@login_required
 def search_items(request):
     query = request.GET.get('query', '')
     items = Item.objects.filter(name__icontains=query)
     return render(request, 'homepage.html', {'items': items, 'query': query})
 
+@login_required
 def item_list(request):
     items = Item.objects.filter(is_deleted=False) 
     return render(request, 'homepage.html', {'items': items})
 
+@login_required
 def add_item(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -118,6 +128,7 @@ def add_item(request):
 
     return render(request, 'add_item.html')
 
+@login_required
 def edit_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)  # Use item_id to fetch the item
     if request.method == 'POST':
@@ -130,35 +141,42 @@ def edit_item(request, item_id):
         return redirect('item_list')
     return render(request, 'edit_item.html', {'item': item})
 
+@login_required
 def notifications(request):
     notifications = Item.objects.filter(is_deleted=False, quantity__lt=10)  # Low stock, not deleted
     return render(request, 'notifications.html', {'notifications': notifications})
 
+@login_required
 def delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     item.is_deleted = True
     item.save()
     return redirect('item_list')  # Replace with the name of your homepage URL
 
+@login_required
 def restore_item(request, item_id):
     item = get_object_or_404(Item, id=item_id, is_deleted=True)
     item.is_deleted = False
     item.save()
     return redirect('recycle_bin')
 
+@login_required
 def permanently_delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id, is_deleted=True)
     item.delete()
     return redirect('recycle_bin')
 
+@login_required
 def restore_all_items(request):
     Item.objects.filter(is_deleted=True).update(is_deleted=False)
     return redirect('recycle_bin')
 
+@login_required
 def delete_all_items(request):
     Item.objects.filter(is_deleted=True).delete()
     return redirect('recycle_bin')
 
+@login_required
 def recycle_bin(request):
     deleted_items = Item.objects.filter(is_deleted=True)
     return render(request, 'recycle_bin.html', {'deleted_items': deleted_items})
