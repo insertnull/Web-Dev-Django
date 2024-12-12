@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from sampleapp.models import Item, ActionLog
+from sampleapp.models import Item, ActionLog, CustomUser
 from django.db.models import Sum, F
 from django.http import HttpResponse
 import json
@@ -10,14 +10,34 @@ sys.path.append('c:\inv\myenv\lib\site-packages')
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout, authenticate, login
+from django.views.decorators.cache import never_cache
+from django.contrib import messages
+from django.contrib.auth.models import User
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard.html")  # Redirect to dashboard
+        else:
+            messages.error(request, "Invalid username or password")
+
+    return render(request, "login.html")
+
+def logout_view(request):
+    logout(request)
+    request.session.flush()  # Clear session data explicitly
+    return redirect("login")
 
 @login_required
-def test_protected_view(request):
-    return HttpResponse("You are authenticated!")
-
-@login_required
+@never_cache
 def dashboard(request):
-    # Data for the pie chart
     inventory = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
     inventory_summary = (
         inventory.values('name')
@@ -85,6 +105,7 @@ def generate_report(request):
     return response
 
 @login_required
+@never_cache
 def backup_items(request):
     # Create the HTTP response object with CSV headers
     response = HttpResponse(content_type='text/csv')
@@ -99,17 +120,20 @@ def backup_items(request):
     return response
 
 @login_required
+@never_cache
 def search_items(request):
     query = request.GET.get('query', '')
     items = Item.objects.filter(name__icontains=query)
     return render(request, 'homepage.html', {'items': items, 'query': query})
 
 @login_required
+@never_cache
 def item_list(request):
     items = Item.objects.filter(is_deleted=False) 
     return render(request, 'homepage.html', {'items': items})
 
 @login_required
+@never_cache
 def add_item(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -129,6 +153,7 @@ def add_item(request):
     return render(request, 'add_item.html')
 
 @login_required
+@never_cache
 def edit_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)  # Use item_id to fetch the item
     if request.method == 'POST':
@@ -142,11 +167,13 @@ def edit_item(request, item_id):
     return render(request, 'edit_item.html', {'item': item})
 
 @login_required
+@never_cache
 def notifications(request):
     notifications = Item.objects.filter(is_deleted=False, quantity__lt=10)  # Low stock, not deleted
     return render(request, 'notifications.html', {'notifications': notifications})
 
 @login_required
+@never_cache
 def delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     item.is_deleted = True
@@ -154,6 +181,7 @@ def delete_item(request, item_id):
     return redirect('item_list')  # Replace with the name of your homepage URL
 
 @login_required
+@never_cache
 def restore_item(request, item_id):
     item = get_object_or_404(Item, id=item_id, is_deleted=True)
     item.is_deleted = False
@@ -161,22 +189,26 @@ def restore_item(request, item_id):
     return redirect('recycle_bin')
 
 @login_required
+@never_cache
 def permanently_delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id, is_deleted=True)
     item.delete()
     return redirect('recycle_bin')
 
 @login_required
+@never_cache
 def restore_all_items(request):
     Item.objects.filter(is_deleted=True).update(is_deleted=False)
     return redirect('recycle_bin')
 
 @login_required
+@never_cache
 def delete_all_items(request):
     Item.objects.filter(is_deleted=True).delete()
     return redirect('recycle_bin')
 
 @login_required
+@never_cache
 def recycle_bin(request):
     deleted_items = Item.objects.filter(is_deleted=True)
     return render(request, 'recycle_bin.html', {'deleted_items': deleted_items})

@@ -3,16 +3,14 @@ from django.urls import path
 from .views import (
     search_items, restore_all_items, delete_all_items, dashboard, item_list, 
     add_item, delete_item, edit_item, backup_items, generate_report, notifications, 
-    recycle_bin, restore_item, permanently_delete_item, test_protected_view
+    recycle_bin, restore_item, permanently_delete_item, logout_view
 )
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 
-urlpatterns = [
+urlpatterns = [ 
     path('admin/', admin.site.urls),
     path('', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-
     # Secure views with login_required
     path('dashboard/', login_required(dashboard), name='dashboard'),
     path('add/', login_required(add_item), name='add_item'),
@@ -28,5 +26,5 @@ urlpatterns = [
     path('item_list/', login_required(item_list), name='item_list'),
     path('recycle-bin/restore-all/', login_required(restore_all_items), name='restore_all_items'),
     path('recycle-bin/delete-all/', login_required(delete_all_items), name='delete_all_items'),
-    path('test/', test_protected_view, name='test_protected')
+    path('logout/', logout_view, name='logout')
 ]

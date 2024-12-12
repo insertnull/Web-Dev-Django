@@ -78,7 +78,7 @@
 <body>
     <div class="login-container">
         <h2>Login to our Inventory System</h2>
-        <form method="post">
+        <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div>
                 <label for="username">Username:</label>
@@ -90,11 +90,13 @@
             </div>
             <button type="submit">Login</button>
         </form>
-        {% if form.errors %}
-            <div class="error">
-                <p>Invalid username or password. Please try again.</p>
-            </div>
-        {% endif %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+{% endif %}
     </div>
 </body>
 </html>
