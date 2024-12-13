@@ -24,7 +24,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect("dashboard.html")  # Redirect to dashboard
+            return redirect("dashboard.html")
         else:
             messages.error(request, "Invalid username or password")
 
@@ -32,25 +32,23 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    request.session.flush()  # Clear session data explicitly
+    request.session.flush()
     return redirect("login")
 
 @login_required
 @never_cache
 def dashboard(request):
-    inventory = Item.objects.filter(is_deleted=False)  # Exclude soft-deleted items
+    inventory = Item.objects.filter(is_deleted=False)
     inventory_summary = (
         inventory.values('name')
         .annotate(total_quantity=Sum('quantity'))
         .order_by('-total_quantity')
     )
 
-    # Get recent changes (Added, Edited, Deleted)
     recent_added = Item.objects.filter(is_deleted=False, created_at=F('modified_at')).order_by('-created_at')[:5]
     recent_modified = Item.objects.filter(is_deleted=False).exclude(created_at=F('modified_at')).order_by('-modified_at')[:5]
     recent_deleted = Item.objects.filter(is_deleted=True).order_by('-modified_at')[:5]
 
-    # Combine and sort by the latest timestamp
     all_changes = (
         list(recent_added) +
         list(recent_modified) +
@@ -58,38 +56,32 @@ def dashboard(request):
     )
     sorted_changes = sorted(all_changes, key=lambda x: max(x.created_at, x.modified_at), reverse=True)[:5]
 
-    # Prepare the context for the dashboard
     context = {
         'inventory_summary': inventory_summary,
-        'recent_changes': sorted_changes,  # Top 5 changes
+        'recent_changes': sorted_changes,
     }
     return render(request, 'dashboard.html', context)
 
 def generate_report(request):
-    # Create the HTTP response object with PDF headers
+
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="inventory_report.pdf"'
 
-    # Create a PDF canvas
     pdf = canvas.Canvas(response, pagesize=letter)
     pdf.setTitle("Inventory Report")
 
-    # Add title
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(100, 750, "Inventory Report")
 
-    # Compute metrics
     least_stocked_item = Item.objects.order_by('quantity').first()
     total_unique_items = Item.objects.count()
     total_items = sum(item.quantity for item in Item.objects.all())
 
-    # Add summary metrics
     pdf.setFont("Helvetica", 12)
     pdf.drawString(100, 720, f"Total unique items: {total_unique_items}")
     pdf.drawString(100, 700, f"Total items in inventory: {total_items}")
     pdf.drawString(100, 680, f"Least stocked item: {least_stocked_item.name if least_stocked_item else 'N/A'}")
 
-    # Add inventory details
     pdf.drawString(100, 630, "Items in Inventory:")
     y_position = 610
     for item in Item.objects.all():
@@ -100,18 +92,15 @@ def generate_report(request):
             pdf.setFont("Helvetica", 12)
             y_position = 750
 
-    # Finalize the PDF
     pdf.save()
     return response
 
 @login_required
 @never_cache
 def backup_items(request):
-    # Create the HTTP response object with CSV headers
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="items_backup.csv"'
 
-    # Write CSV data
     writer = csv.writer(response)
     writer.writerow(['ID', 'Name', 'Quantity', 'Price'])
     for item in Item.objects.all():
@@ -141,7 +130,7 @@ def add_item(request):
         quantity = request.POST.get('quantity')
         price = request.POST.get('price')
 
-        if name and quantity and price:  # Basic validation
+        if name and quantity and price:
             Item.objects.create(
                 name=name,
                 description=description,
@@ -155,9 +144,8 @@ def add_item(request):
 @login_required
 @never_cache
 def edit_item(request, item_id):
-    item = get_object_or_404(Item, id=item_id)  # Use item_id to fetch the item
+    item = get_object_or_404(Item, id=item_id)
     if request.method == 'POST':
-        # Update item logic
         item.name = request.POST['name']
         item.description = request.POST['description']
         item.quantity = request.POST['quantity']
@@ -169,7 +157,7 @@ def edit_item(request, item_id):
 @login_required
 @never_cache
 def notifications(request):
-    notifications = Item.objects.filter(is_deleted=False, quantity__lt=10)  # Low stock, not deleted
+    notifications = Item.objects.filter(is_deleted=False, quantity__lt=10)
     return render(request, 'notifications.html', {'notifications': notifications})
 
 @login_required
@@ -178,7 +166,7 @@ def delete_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     item.is_deleted = True
     item.save()
-    return redirect('item_list')  # Replace with the name of your homepage URL
+    return redirect('item_list')
 
 @login_required
 @never_cache
