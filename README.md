@@ -2,15 +2,12 @@ This is a web-based inventory management system built using Django, HTML, and CS
 
 🔧 Features
 Add new inventory items
-
 Edit existing item details
-
 Delete items from inventory
-
 View a list of all items with key information
+
 
 🛠️ Tech Stack
 Backend: Django (Python)
-
 Frontend: HTML, CSS
 
