@@ -18,3 +18,21 @@ Backend: Django (Python)
 
 Frontend: HTML, CSS
 
+## 🔨 **Installation**
+
+**1. Install the dependencies**
+
+pip install -r requirements.txt
+
+**2. Apply database migrations**
+
+python manage.py migrate
+
+**3. Run the development server**
+
+python manage.py runserver
+
+**4. Open in browser**
+
+Visit http://127.0.0.1:8000 to access the application.
+
