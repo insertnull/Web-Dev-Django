@@ -4,13 +4,13 @@ This is a web-based inventory management system built using Django, HTML, and CS
 
 
 ## 🔧 **Features**
-Dashboard with inventory overview and recent updates
+1. Dashboard with inventory overview and recent updates
 
-CRUD operations for managing items
+2. CRUD operations for managing items
 
-Low-stock alerts
+3. Low-stock alerts
 
-Real-time updates with clean UI
+4. Real-time updates with clean UI
 
 
 ## 🛠️ **Tech Stack**
